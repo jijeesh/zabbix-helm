@@ -1,0 +1,115 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .Values.zabbix.server.service.http.name }}
+  labels:
+    app: {{ template "zabbix-helm.name" . }}
+    chart: {{ template "zabbix-helm.chart" . }}
+    release: {{ .Release.Name }}
+    heritage: {{ .Release.Service }}
+spec:
+  type: {{ .Values.zabbix.server.service.http.type }}
+  ports:
+  - port: {{ .Values.zabbix.server.service.http.port }}
+    targetPort: http
+    protocol: TCP
+    name: http
+  selector:
+    app: {{ template "zabbix-helm.name" . }}
+    release: {{ .Release.Name }}
+
+--- 
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .Values.zabbix.server.service.https.name }}
+  labels:
+    app: {{ template "zabbix-helm.name" . }}
+    chart: {{ template "zabbix-helm.chart" . }}
+    release: {{ .Release.Name }}
+    heritage: {{ .Release.Service }}
+spec:
+  type: {{ .Values.zabbix.server.service.https.type }}
+  ports:
+  - port: {{ .Values.zabbix.server.service.https.port }}
+    targetPort: https
+    protocol: TCP
+    name: https
+  selector:
+    app: {{ template "zabbix-helm.name" . }}
+    release: {{ .Release.Name }}
+
+--- 
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .Values.zabbix.server.service.passive.name }}
+  labels:
+    app: {{ template "zabbix-helm.name" . }}
+    chart: {{ template "zabbix-helm.chart" . }}
+    release: {{ .Release.Name }}
+    heritage: {{ .Release.Service }}
+spec:
+  type: {{ .Values.zabbix.server.service.passive.type }}
+  ports:
+  - port: {{ .Values.zabbix.server.service.passive.port }}
+    targetPort: passive
+    protocol: TCP
+    name: passive
+  selector:
+    app: {{ template "zabbix-helm.name" . }}
+    release: {{ .Release.Name }}
+
+--- 
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .Values.zabbix.server.service.active.name }}
+  labels:
+    app: {{ template "zabbix-helm.name" . }}
+    chart: {{ template "zabbix-helm.chart" . }}
+    release: {{ .Release.Name }}
+    heritage: {{ .Release.Service }}
+spec:
+  type: {{ .Values.zabbix.server.service.active.type }}
+  ports:
+  - port: {{ .Values.zabbix.server.service.active.port }}
+    targetPort: active
+    protocol: TCP
+    name: active
+  selector:
+    app: {{ template "zabbix-helm.name" . }}
+    release: {{ .Release.Name }}
+
+--- 
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .Values.zabbix.server.service.loadbalancer.name }}
+  labels:
+    app: {{ template "zabbix-helm.name" . }}
+    chart: {{ template "zabbix-helm.chart" . }}
+    release: {{ .Release.Name }}
+    heritage: {{ .Release.Service }}
+  annotations:
+  	service.beta.kubernetes.io/aws-load-balancer-internal: {{ .Values.zabbix.server.service.loadbalancer.ip }}
+spec:
+  type: {{ .Values.zabbix.server.service.loadbalancer.type }}
+  ports:
+  - port: {{ .Values.zabbix.server.service.loadbalancer.port }}
+    targetPort: loadbalancer
+    protocol: TCP
+    name: loadbalancer
+  clusterIP: {{ .Values.zabbix.server.service.loadbalancer.clusterIP }}
+  loadBalancerIP: {{ .Values.zabbix.server.service.loadbalancer.loadbalancerIP }}
+  selector:
+    app: {{ template "zabbix-helm.name" . }}
+    release: {{ .Release.Name }}
+status:
+  loadBalancer:
+    ingress:
+    - ip: {{ .Values.zabbix.server.service.ingress.ip }} 

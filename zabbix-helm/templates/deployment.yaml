@@ -1,0 +1,85 @@
+apiVersion: apps/v1beta2
+kind: Deployment
+metadata:
+  name: {{ template "zabbix-helm.fullname" . }}
+  labels:
+    app: {{ template "zabbix-helm.name" . }}
+    chart: {{ template "zabbix-helm.chart" . }}
+    release: {{ .Release.Name }}
+    heritage: {{ .Release.Service }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      app: {{ template "zabbix-helm.name" . }}
+      release: {{ .Release.Name }}
+  template:
+    metadata:
+      labels:
+        app: {{ template "zabbix-helm.name" . }}
+        release: {{ .Release.Name }}
+    spec:
+    containers:
+    - name: {{ .Values.zabbix.db.image.name }}
+      imagePullPolicy: {{ .Values.zabbix.db.image.pullPolicy }} 
+      env:
+      - name: MARIADB_USER
+        value: {{ .Values.zabbix.db.mariadb.user }}
+      - name: MARIADB_PASS
+        value: {{ .Values.zabbix.db.mariadb.pass }}
+    - name: {{ .Values.zabbix.server.image }}
+      imagePullPolicy: {{ .Values.zabbix.server.image.pullPolicy }}
+      ports:
+      - name: http
+        containerPort: {{ .Values.zabbix.server.service.http.port }}
+        protocol: TCP
+      - name: https
+        containerPort: {{ .Values.zabbix.server.service.https.port }}
+        protocol: TCP
+      - name: passive
+        containerPort: {{ .Values.zabbix.server.service.passive.port }}
+        protocol: TCP
+      - name: active
+        containerPort: {{ .Values.zabbix.server.service.active.port }}
+        protocol: TCP          
+      livenessProbe:
+        #httpGet:
+        #  path: /
+        #  port: http
+        tcpSocket:
+          port: 80
+        initialDelaySeconds: 30
+        periodSeconds: 5
+      readinessProbe:
+        #httpGet:
+        #  path: /
+        #  port: http
+        tcpSocket:
+          port: 80
+        intialDelaySeconds: 30
+        periodSeconds: 5
+      env:
+      - name: ZS_DBHost
+        value: {{ .Values.zabbix.db.hostname }}
+      - name: ZS_DBUser
+        values: {{ .Values.zabbix.db.mariadb.user }}
+      - name: ZS_DBPassword
+        values: {{ .Values.zabbix.db.mariadb.pass }}
+      - name: XXL_zapix
+        values: {{ .Values.zabbix.server.env.zapix }}
+      - name: XXL_grapher
+        values: {{ .Values.zabbix.server.env.grapher }}
+  resources:
+{{ toYaml .Values.resources | indent 12 }}
+    {{- with .Values.nodeSelector }}
+  nodeSelector:
+{{ toYaml . | indent 8 }}
+    {{- end }}
+    {{- with .Values.affinity }}
+  affinity:
+{{ toYaml . | indent 8 }}
+    {{- end }}
+    {{- with .Values.tolerations }}
+  tolerations:
+{{ toYaml . | indent 8 }}
+    {{- end }}
